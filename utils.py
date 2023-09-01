@@ -27,6 +27,10 @@ def train_model(x,y,model_params,model_type="svm"):
     model.fit(x,y)
     return model
 
-def train_test_dev_split():
-    X_train,X_test,y_train,y_test,x_dev, y_dev = 
+def train_test_dev_split(x,y,test_size,random_state=1):
+    X_main,X_test,y_main,y_test = train_test_split(x,y,test_size=100,stratify=y) 
+    X_train,x_dev,y_train, y_dev = train_test_split(X_main,y_main,test_size=100)
     return X_train,X_test,y_train,y_test,x_dev,y_dev
+
+
+    
