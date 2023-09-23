@@ -32,12 +32,20 @@ for ax, image, label in zip(axes, X, y):
     ax.set_title("Training: %i" % label)
 
 
-# 3. Splitting the data
+# get the size of the dataset
+
 
 
 
 X_train,X_test,y_train,y_test = split_data(X,y, test_size = 0.3)
 
+size = X_train.shape[0]+X_test.shape[0]
+print(size)
+
+# size of the image in the dataset
+import numpy as np
+image = np.array(image)
+print(image.shape)
 # 4. Preprocess data
 X_train = preprocess_data(X_train)
 X_test = preprocess_data(X_test)

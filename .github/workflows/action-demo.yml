@@ -22,3 +22,4 @@ jobs:
         run:  pip3 install --no-cache-dir -r requirements.txt
       - name: Run experiment
         run: python3 plot_digits_classification.py
+        run: echo "Q1 is done "
