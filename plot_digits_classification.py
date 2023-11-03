@@ -1,114 +1,81 @@
-"""
-================================
-Recognizing hand-written digits
-================================
-
-This example shows how scikit-learn can be used to recognize images of
-hand-written digits, from 0-9.
-
-"""
+# This example shows how scikit-learn can be used to recognize images of hand-written digits, from 0-9.
 
 # Author: Gael Varoquaux <gael dot varoquaux at normalesup dot org>
 # License: BSD 3 clause
 
-# Standard scientific Python imports
-import matplotlib.pyplot as plt
-import  pdb
 
 # Import datasets, classifiers and performance metrics
-from sklearn import datasets, metrics, svm
-from sklearn.model_selection import train_test_split
+from utils import preprocess_data, tune_hparams, split_train_dev_test,read_digits,predict_and_eval
+from joblib import load
+import pandas as pd
+import argparse, sys
 
-from utils import train_model,preprocess_data,split_data,read_digits
+# The digits dataset consists of 8x8 pixel images of digits. The images attribute of the dataset stores 8x8 arrays of grayscale values for each image. We will use these arrays to visualize the first 4 images. The target attribute of the dataset stores the digit each image represents and this is included in the title of the 4 plots below.
+# Note: if we were working from image files (e.g., ‘png’ files), we would load them using matplotlib.pyplot.imread.
 
+# 1. Data Loading
 
-# Get the dataset
-X, y = read_digits()
+x,y = read_digits()
 
-_, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
-for ax, image, label in zip(axes, X, y):
-    ax.set_axis_off()
-    ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
-    ax.set_title("Training: %i" % label)
+parser=argparse.ArgumentParser()
 
+parser.add_argument("--runs", help="number of runs")
+parser.add_argument("--test_sizes", help="comma sprated value of test sizes")
+parser.add_argument("--dev_sizes", help="comma sprated value of dev sizes")
+parser.add_argument("--models", help="comma sprated value of models")
 
-# get the size of the dataset
+args=parser.parse_args()
 
-
-
-
-X_train,X_test,y_train,y_test = split_data(X,y, test_size = 0.3)
-
-size = X_train.shape[0]+X_test.shape[0]
-print(size)
-
-# size of the image in the dataset
-import numpy as np
-image = np.array(image)
-print(image.shape)
-# 4. Preprocess data
-X_train = preprocess_data(X_train)
-X_test = preprocess_data(X_test)
-
-#5. Model training
-# Create a classifier: a support vector classifier
+max_runs = int(args.runs)  
+test_sizes = args.test_sizes.split(',')
+test_sizes = [float(i) for i in test_sizes]
+dev_sizes = args.dev_sizes.split(',')
+dev_sizes = [float(i) for i in dev_sizes]
+models = args.models.split(',')
+models = [str(i) for i in models] 
 
 
 
-model = train_model(X_train,y_train,{'gamma': 0.001},model_type = "svm")
+#print("Total number of samples : ", len(x))
 
+#print("(number of samples,length of image,height of image) is:",x.shape)
 
-# Learn the digits on the train subset
+# test_sizes = [0.1, 0.2, 0.3]
+# dev_sizes = [0.1, 0.2, 0.3]
 
+# test_sizes = [0.2]
+# dev_sizes = [0.2]
+results = []
 
-# Predict the value of the digit on the test subset
-predicted = model.predict(X_test)
+for i in range(max_runs):
+    for test_size in test_sizes:
+        for dev_size in dev_sizes:
+        # 3. Data splitting
+            X_train, X_test,X_dev, y_train, y_test,y_dev = split_train_dev_test(x, y, test_size=test_size, dev_size=dev_size);
 
-###############################################################################
-# Below we visualize the first 4 test samples and show their predicted
-# digit value in the title.
+        # 4. Data Preprocessing
+            X_train = preprocess_data(X_train)
+            X_test = preprocess_data(X_test)
+            X_dev = preprocess_data(X_dev)
 
-_, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
-for ax, image, prediction in zip(axes, X_test, predicted):
-    ax.set_axis_off()
-    image = image.reshape(8, 8)
-    ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
-    ax.set_title(f"Prediction: {prediction}")
+            classifer_hparam = {}
 
-###############################################################################
-# :func:`~sklearn.metrics.classification_report` builds a text report showing
-# the main classification metrics.
+            gama_ranges = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+            C_ranges = [0.1,1,2,5,10]
+            classifer_hparam['svm']= [{'gamma': gamma, 'C': C} for gamma in gama_ranges for C in C_ranges]
 
-print(
-    f"Classification report for classifier {model}:\n"
-    f"{metrics.classification_report(y_test, predicted)}\n"
-)
+            max_depth = [5,10,15,20,50,100]
+            classifer_hparam['tree'] = [{'max_depth': depth} for depth in max_depth]
 
-###############################################################################
-# We can also plot a :ref:`confusion matrix <confusion_matrix>` of the
-# true digit values and the predicted digit values.
-
-disp = metrics.ConfusionMatrixDisplay.from_predictions(y_test, predicted)
-disp.figure_.suptitle("Confusion Matrix")
-print(f"Confusion matrix:\n{disp.confusion_matrix}")
-
-plt.show()
-
-
-
-# The ground truth and predicted lists
-y_true = []
-y_pred = []
-cm = disp.confusion_matrix
-
-# For each cell in the confusion matrix, add the corresponding ground truths
-# and predictions to the lists
-for gt in range(len(cm)):
-    for pred in range(len(cm)):
-        y_true += [gt] * cm[gt][pred]
-        y_pred += [pred] * cm[gt][pred]
-
-print(
-    "Classification report rebuilt from confusion matrix:\n"
-    f"{metrics.classification_report(y_true, y_pred)}\n"
-)
+        # Predict the value of the digit on the test subset
+        # 6.Predict and Evaluate 
+            for model in models:
+                best_hparams, best_model_path, best_accuracy = tune_hparams(X_train, y_train, X_dev, y_dev, classifer_hparam[model], model_type=model)
+                best_model = load(best_model_path)
+        
+                accuracy_test = predict_and_eval(best_model, X_test, y_test)
+                accuracy_dev = predict_and_eval(best_model, X_dev, y_dev)
+                accuracy_train = predict_and_eval(best_model, X_train, y_train)
+                print(f"model={model} run_index={i} test_size={test_size} dev_size={dev_size} train_size={1- (dev_size+test_size)} train_acc={accuracy_train} dev_acc={accuracy_dev} test_acc={accuracy_test}")
+                results.append([{'model':model,'run_index': i, 'test_size':test_size, 'dev_size':dev_size,'train_size': 1- (dev_size+test_size), 'train_acc':accuracy_train,'dev_acc':accuracy_dev,'test_acc':accuracy_test}])
+        #print(f"best_gamma={best_hparams['gamma']},best_C={best_hparams['C']}")
