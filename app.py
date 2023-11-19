@@ -4,9 +4,17 @@ from joblib import load
 
 app = Flask(__name__)
 
-@app.route('/hello/<name>')
-def index(name):
-    return "Hello, "+name+"!"
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
+
+@app.route("/", methods=["POST"])
+def hello_world_post():    
+    return {"op" : "Hello, World POST " + request.json["suffix"]}
+
+# @app.route('/hello/<name>')
+# def index(name):
+#     return "Hello, "+name+"!"
 
 @app.route('/predict',methods=['POST'])
 def predict_image():
@@ -16,7 +24,7 @@ def predict_image():
         img = js['image']
         
         directory = os.path.dirname(__file__)
-        file = os.path.join(directory,'../models/svmgamma:0.001_C:1.joblib')
+        file = os.path.join(directory,'..tree_max_depth:100.joblib')
         
         model = load(file)
         predict= model.predict(img)

@@ -1,5 +1,5 @@
 import pytest
-from utils import split_train_dev_test,read_digits,preprocess_data,tune_hparams
+from utils import train_test_dev_split,read_digits,preprocess_data,tune_hparams
 import os
 
 def inc(x):
@@ -44,5 +44,5 @@ def test_data_splitting():
     dev_size = 0.6
     train_size = 1 - (dev_size + test_size)
 
-    X_train, X_test,X_dev, y_train, y_test,y_dev = split_train_dev_test(X, y, test_size=test_size, dev_size=dev_size);
+    X_train, X_test,X_dev, y_train, y_test,y_dev = train_test_dev_split(X, y, test_size=test_size, dev_size=dev_size);
     assert len(X_train) == int(train_size * len(X)) and len(X_test) == int(test_size * len(X)) and len(X_dev) == int(dev_size * len(X))
