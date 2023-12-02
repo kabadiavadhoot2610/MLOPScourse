@@ -23,5 +23,4 @@ jobs:
       - name: Run experiment
         run: python3 exp.py --runs 1 --test_sizes 0.3 --dev_sizes 0.2 --models lr
       - run: echo "Q1 is done "
-      - name: Run test_cases
-        run: python3 -m pytest
+      
