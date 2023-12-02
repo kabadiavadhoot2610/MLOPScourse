@@ -26,20 +26,7 @@ dev_sizes = args.dev_sizes.split(',')
 dev_sizes = [float(i) for i in dev_sizes]
 models = args.models.split(',')
 models = [str(i) for i in models] 
-# models = []
-# models.append(args.prod)
-# models.append(args.candidate)
 
-
-#print("Total number of samples : ", len(x))
-
-#print("(number of samples,length of image,height of image) is:",x.shape)
-
-# test_sizes = [0.1, 0.2, 0.3]
-# dev_sizes = [0.1, 0.2, 0.3]
-
-# test_sizes = [0.2]
-# dev_sizes = [0.2]
 results = []
 
 for i in range(max_runs):
@@ -76,11 +63,7 @@ for i in range(max_runs):
                 accuracy_dev,_ = predict_and_eval(best_model, X_dev, y_dev)
                 accuracy_train,_ = predict_and_eval(best_model, X_train, y_train)
                 print("Model accuracy "+f" model={model} run_index={i} test_size={test_size} dev_size={dev_size} train_size={1- (dev_size+test_size)} train_acc={accuracy_train} dev_acc={accuracy_dev} test_acc={accuracy_test}")
-                # disp = metrics.ConfusionMatrixDisplay.from_predictions(y_test, predicted_test)
-                # disp.figure_.suptitle("Confusion Matrix")
-                # print(f"Confusion matrix:\n{disp.confusion_matrix}")
-                #results.append([{'model':model,'run_index': i, 'test_size':test_size, 'dev_size':dev_size,'train_size': 1- (dev_size+test_size), 'train_acc':accuracy_train,'dev_acc':accuracy_dev,'test_acc':accuracy_test}])
-        #print(f"best_gamma={best_hparams['gamma']},best_C={best_hparams['C']}")
+                
 
 
 
