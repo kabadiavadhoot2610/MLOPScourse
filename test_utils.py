@@ -1,6 +1,7 @@
 import pytest
-from utils import train_test_dev_split,read_digits,preprocess_data,tune_hparams
+from utils import split_train_dev_test,read_digits,preprocess_data,tune_hparams
 import os
+from joblib import dump,load
 
 def inc(x):
     return x + 1
@@ -44,5 +45,17 @@ def test_data_splitting():
     dev_size = 0.6
     train_size = 1 - (dev_size + test_size)
 
-    X_train, X_test,X_dev, y_train, y_test,y_dev = train_test_dev_split(X, y, test_size=test_size, dev_size=dev_size);
+    X_train, X_test,X_dev, y_train, y_test,y_dev = split_train_dev_test(X, y, test_size=test_size, dev_size=dev_size);
     assert len(X_train) == int(train_size * len(X)) and len(X_test) == int(test_size * len(X)) and len(X_dev) == int(dev_size * len(X))
+
+def test_Logistic_regression():
+    solvers = ['lbfgs', 'liblinear', 'newton-cg', 'sag', 'saga']
+    for solver in solvers:
+       loaded_model = load("./models/D23CSA001_lr_{}".format(solver)+".joblib")
+       assert loaded_model.__class__.__name__ == 'LogisticRegression'
+
+def test_check_LR_solver():
+    solvers = ['lbfgs', 'liblinear', 'newton-cg', 'sag', 'saga']
+    for solver in solvers:
+       loaded_model = load("./models/D23CSA001_lr_{}".format(solver)+".joblib")
+       assert loaded_model.solver == solver
