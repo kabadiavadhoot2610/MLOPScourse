@@ -23,3 +23,5 @@ jobs:
       - name: Run experiment
         run: python3 exp.py
       - run: echo "Q1 is done "
+      - name: Run test_cases
+        run: python3 -m pytest
